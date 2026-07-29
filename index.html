@@ -9,7 +9,7 @@
         body {
             background: #0d0d0d;
             color: white;
-            font-family: -apple-system, sans-serif;
+            font-family: sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -32,50 +32,45 @@
             font-family: serif;
             margin-bottom: 30px;
         }
+
         .hint {
             color: #555;
             font-size: 0.9rem;
             font-family: serif;
             margin-bottom: 25px;
-            transition: opacity 0.5s ease;
         }
-        .hint.dim { opacity: 0.2; }
+        .hint.hidden { opacity: 0.3; }
+
         .lamp {
             width: 150px;
             height: 150px;
             margin: 0 auto 20px auto;
             background: #1a1a1a;
             border-radius: 50%;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
             color: #333;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             border: 2px solid #222;
             user-select: none;
         }
-        .lamp:hover { border-color: #555; transform: scale(1.02); }
         .lamp.lit {
             background: #d49b6e;
             border-color: #d49b6e;
-            box-shadow: 0 0 80px rgba(212, 155, 110, 0.7);
+            box-shadow: 0 0 80px rgba(212, 155, 110, 0.6);
             color: #0d0d0d;
-            transform: scale(1.05);
         }
+
         #unlock-wrapper {
             margin-top: 20px;
             display: none;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        #unlock-wrapper.reveal {
+        #unlock-wrapper.show {
             display: block;
-            opacity: 1;
-            transform: translateY(0);
         }
         #unlock-btn {
             display: inline-block;
@@ -88,20 +83,16 @@
             text-decoration: none;
             border: 2px solid #d49b6e;
             border-radius: 60px;
-            transition: all 0.4s ease;
-            letter-spacing: 2px;
+            transition: all 0.3s ease;
         }
         #unlock-btn:hover {
             background: #d49b6e;
             color: #0d0d0d;
-            box-shadow: 0 0 40px rgba(212, 155, 110, 0.3);
-            transform: scale(1.02);
         }
         .footer {
             margin-top: 50px;
             font-size: 0.75rem;
             color: #2a2a2a;
-            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -111,7 +102,7 @@
         <h1>Open Stage</h1>
         <p class="sub">The Conservatory of Actors</p>
 
-        <div class="hint" id="hint">☞ tap the light to open the door</div>
+        <div class="hint" id="hint">☞ tap the light</div>
 
         <div class="lamp" id="lamp">✦</div>
 
@@ -126,18 +117,16 @@
         const lamp = document.getElementById('lamp');
         const hint = document.getElementById('hint');
         const unlockWrapper = document.getElementById('unlock-wrapper');
+        let opened = false;
 
-        let isOpen = false;
-
-        lamp.addEventListener('click', () => {
-            if (!isOpen) {
+        lamp.addEventListener('click', function() {
+            if (!opened) {
                 lamp.classList.add('lit');
-                hint.classList.add('dim');
-                isOpen = true;
-                
-                setTimeout(() => {
-                    unlockWrapper.classList.add('reveal');
-                }, 400);
+                hint.classList.add('hidden');
+                opened = true;
+                setTimeout(function() {
+                    unlockWrapper.classList.add('show');
+                }, 500);
             }
         });
     </script>
