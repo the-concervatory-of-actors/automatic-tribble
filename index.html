@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -32,10 +32,11 @@
             font-family: serif;
             margin-bottom: 30px;
         }
+
         .card-row {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 20px;
             margin: 20px 0;
         }
         .card {
@@ -47,18 +48,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
-            color: #444;
+            font-size: 2.5rem;
+            color: #555;
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
         }
-        .card:hover { border-color: #555; transform: scale(1.05); }
+        .card:hover {
+            border-color: #555;
+            transform: scale(1.05);
+        }
         .card.flipped {
-            background: #2a2a2a;
             border-color: #d49b6e;
             color: #d49b6e;
-            box-shadow: 0 0 20px rgba(212, 155, 110, 0.1);
+            box-shadow: 0 0 20px rgba(212, 155, 110, 0.2);
             cursor: default;
         }
         .card.flipped.correct {
@@ -71,19 +74,17 @@
             color: #ef9a9a;
             box-shadow: 0 0 20px rgba(183, 28, 28, 0.3);
         }
-        .card.flipped.disabled { opacity: 0.5; cursor: not-allowed; }
-        #target {
-            font-size: 4rem;
-            color: #d49b6e;
-            margin: 20px 0 10px;
-            text-shadow: 0 0 30px rgba(212, 155, 110, 0.3);
+        .card.flipped.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
+
         #unlock-wrapper {
             margin-top: 25px;
             display: none;
             opacity: 0;
             transform: translateY(20px);
-            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.8s ease;
         }
         #unlock-wrapper.reveal {
             display: block;
@@ -101,13 +102,13 @@
             text-decoration: none;
             border-radius: 60px;
             transition: all 0.4s ease;
-            letter-spacing: 2px;
             box-shadow: 0 0 25px rgba(212, 155, 110, 0.2);
         }
         #unlock-btn:hover {
             transform: scale(1.02);
             box-shadow: 0 0 40px rgba(212, 155, 110, 0.5);
         }
+
         .hint {
             color: #555;
             font-size: 0.9rem;
@@ -128,12 +129,11 @@
     <div class="container">
         <h1>Open Stage</h1>
         <p class="sub">The Conservatory of Actors</p>
-        <div class="hint" id="hint">🔒 tap the card that matches the symbol</div>
-        <div id="target">✦</div>
+        <div class="hint" id="hint">🔍 find the odd symbol</div>
         <div class="card-row" id="cardRow">
-            <div class="card" data-symbol="✦">?</div>
-            <div class="card" data-symbol="✧">?</div>
-            <div class="card" data-symbol="⬡">?</div>
+            <div class="card">?</div>
+            <div class="card">?</div>
+            <div class="card">?</div>
         </div>
         <div id="unlock-wrapper">
             <a href="https://theconservatoryofactors.univer.se/" id="unlock-btn">Enter the Stage</a>
@@ -142,39 +142,54 @@
     </div>
     <script>
         const cards = document.querySelectorAll('.card');
-        const targetEl = document.getElementById('target');
         const hint = document.getElementById('hint');
         const unlockWrapper = document.getElementById('unlock-wrapper');
-        const allSymbols = ['✦', '✧', '⬡'];
+
+        const allSymbols = ['✦', '✧', '⬡', '◆', '☆'];
         let round = 0;
         let isLocked = false;
+
         function startRound() {
-            const targetSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
-            targetEl.textContent = targetSymbol;
-            cards.forEach(c => {
-                c.classList.remove('flipped', 'correct', 'wrong', 'disabled');
-                c.textContent = '?';
-            });
-            let symbolsForRound = [...allSymbols];
-            symbolsForRound = symbolsForRound.sort(() => Math.random() - 0.5);
+            // Pick one symbol to be the "odd one"
+            const oddSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+            // Pick a different symbol for the pair
+            let pairSymbol;
+            do {
+                pairSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+            } while (pairSymbol === oddSymbol);
+
+            // Assign symbols to cards (2 identical, 1 odd)
+            const roundSymbols = [pairSymbol, pairSymbol, oddSymbol];
+            // Shuffle them
+            for (let i = roundSymbols.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [roundSymbols[i], roundSymbols[j]] = [roundSymbols[j], roundSymbols[i]];
+            }
+
             cards.forEach((card, i) => {
-                card.dataset.symbol = symbolsForRound[i % symbolsForRound.length];
+                card.classList.remove('flipped', 'correct', 'wrong', 'disabled');
+                card.textContent = '?';
+                card.dataset.symbol = roundSymbols[i];
+                card.dataset.isOdd = (roundSymbols[i] === oddSymbol) ? 'true' : 'false';
             });
-            hint.textContent = `🔒 match ${round + 1} / 3`;
+
+            hint.textContent = `🔍 round ${round + 1} / 3 — tap the odd one`;
             isLocked = false;
         }
+
         cards.forEach(card => {
             card.addEventListener('click', () => {
                 if (isLocked) return;
                 if (card.classList.contains('flipped')) return;
-                const cardSymbol = card.dataset.symbol;
-                const targetSymbol = targetEl.textContent;
+
                 card.classList.add('flipped');
-                card.textContent = cardSymbol;
-                if (cardSymbol === targetSymbol) {
+                card.textContent = card.dataset.symbol;
+
+                if (card.dataset.isOdd === 'true') {
                     card.classList.add('correct');
                     round++;
-                    hint.textContent = `✅ ${round} / 3 matched`;
+                    hint.textContent = `✅ ${round} / 3 correct`;
+
                     if (round === 3) {
                         isLocked = true;
                         hint.textContent = '✨ Stage unlocked!';
@@ -183,19 +198,20 @@
                             unlockWrapper.classList.add('reveal');
                         }, 500);
                     } else {
-                        setTimeout(startRound, 700);
+                        setTimeout(startRound, 800);
                     }
                 } else {
                     card.classList.add('wrong');
                     isLocked = true;
-                    hint.textContent = '❌ Wrong match! Try again.';
+                    hint.textContent = '❌ Wrong! Try again.';
                     setTimeout(() => {
                         round = 0;
                         startRound();
-                    }, 800);
+                    }, 900);
                 }
             });
         });
+
         startRound();
     </script>
 </body>
