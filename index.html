@@ -74,9 +74,7 @@
             transition: none;
             z-index: 10;
         }
-        .draggable:active {
-            cursor: grabbing;
-        }
+        .draggable:active { cursor: grabbing; }
         .instruction {
             color: #888;
             font-size: 0.9rem;
@@ -154,7 +152,7 @@
         draggable.addEventListener('touchmove', drag);
         draggable.addEventListener('touchend', endDrag);
 
-        // Mouse events for fallback (if someone uses a mouse)
+        // Mouse events for fallback
         draggable.addEventListener('mousedown', startDrag);
         window.addEventListener('mousemove', drag);
         window.addEventListener('mouseup', endDrag);
@@ -176,7 +174,6 @@
             currentX = touch.clientX - rect.left - 25;
             currentY = touch.clientY - rect.top - 25;
             
-            // Keep dot inside the box
             currentX = Math.max(0, Math.min(currentX, 300 - 50));
             currentY = Math.max(0, Math.min(currentY, 300 - 50));
 
@@ -190,7 +187,6 @@
             isDragging = false;
             draggable.style.cursor = 'grab';
 
-            // Check if dot is over the target (centered at 120, 120)
             const targetCenterX = 120;
             const targetCenterY = 120;
             const dotCenterX = currentX + 25;
@@ -201,13 +197,11 @@
             );
 
             if (distance < 40) {
-                // Unlock!
                 instruction.textContent = '✨ Stage unlocked!';
                 unlockWrapper.classList.add('reveal');
                 draggable.style.pointerEvents = 'none';
             } else {
                 instruction.textContent = 'Not quite. Drag the dot onto the golden ring.';
-                // Reset dot to start position
                 setTimeout(() => {
                     draggable.style.left = '20px';
                     draggable.style.top = '20px';
