@@ -32,62 +32,50 @@
             font-family: serif;
             margin-bottom: 30px;
         }
-
-        /* The Drag Puzzle */
-        .puzzle-area {
-            margin: 30px auto;
-            width: 300px;
-            height: 300px;
-            border: 2px solid #333;
-            border-radius: 20px;
-            position: relative;
-            background: #111;
-            touch-action: none;
+        
+        .hint {
+            color: #555;
+            font-size: 0.9rem;
+            font-family: serif;
+            margin-bottom: 25px;
+            transition: opacity 0.5s ease;
+            min-height: 30px;
         }
-        .target {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border: 2px solid #d49b6e;
+        .hint.dim { opacity: 0.2; }
+        
+        .lamp {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px auto;
+            background: #1a1a1a;
             border-radius: 50%;
-            top: 120px;
-            left: 120px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #d49b6e;
-            font-size: 0.8rem;
-            font-weight: bold;
-            pointer-events: none;
+            font-size: 3rem;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid #222;
+            user-select: none;
+            position: relative;
         }
-        .draggable {
-            position: absolute;
-            width: 50px;
-            height: 50px;
+        .lamp:hover { border-color: #555; transform: scale(1.02); }
+        .lamp.lit {
             background: #d49b6e;
-            border-radius: 50%;
-            top: 20px;
-            left: 20px;
-            cursor: grab;
-            box-shadow: 0 0 30px rgba(212, 155, 110, 0.2);
-            touch-action: none;
-            transition: none;
-            z-index: 10;
-        }
-        .draggable:active { cursor: grabbing; }
-        .instruction {
-            color: #888;
-            font-size: 0.9rem;
-            margin: 15px 0;
-            min-height: 24px;
+            border-color: #d49b6e;
+            box-shadow: 0 0 80px rgba(212, 155, 110, 0.7);
+            color: #0d0d0d;
+            transform: scale(1.05);
         }
 
         #unlock-wrapper {
-            margin-top: 25px;
+            margin-top: 20px;
             display: none;
             opacity: 0;
             transform: translateY(20px);
-            transition: all 0.8s ease;
+            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         #unlock-wrapper.reveal {
             display: block;
@@ -97,20 +85,24 @@
         #unlock-btn {
             display: inline-block;
             padding: 16px 48px;
-            background: #d49b6e;
-            color: #0d0d0d;
+            background: transparent;
+            color: #d49b6e;
             font-size: 1.4rem;
             font-weight: bold;
             font-family: serif;
             text-decoration: none;
+            border: 2px solid #d49b6e;
             border-radius: 60px;
             transition: all 0.4s ease;
-            box-shadow: 0 0 25px rgba(212, 155, 110, 0.2);
+            letter-spacing: 2px;
         }
         #unlock-btn:hover {
+            background: #d49b6e;
+            color: #0d0d0d;
+            box-shadow: 0 0 40px rgba(212, 155, 110, 0.3);
             transform: scale(1.02);
-            box-shadow: 0 0 40px rgba(212, 155, 110, 0.5);
         }
+
         .footer {
             margin-top: 50px;
             font-size: 0.75rem;
@@ -120,16 +112,14 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <h1>Open Stage</h1>
         <p class="sub">The Conservatory of Actors</p>
 
-        <div class="instruction" id="instruction">👆 Drag the dot onto the golden ring</div>
+        <div class="hint" id="hint">☞ tap the light to open the door</div>
 
-        <div class="puzzle-area" id="puzzleArea">
-            <div class="target">✦</div>
-            <div class="draggable" id="draggableDot"></div>
-        </div>
+        <div class="lamp" id="lamp">✦</div>
 
         <div id="unlock-wrapper">
             <a href="https://theconservatoryofactors.univer.se/" id="unlock-btn">Enter the Stage</a>
@@ -139,77 +129,24 @@
     </div>
 
     <script>
-        const draggable = document.getElementById('draggableDot');
-        const puzzleArea = document.getElementById('puzzleArea');
-        const instruction = document.getElementById('instruction');
+        const lamp = document.getElementById('lamp');
+        const hint = document.getElementById('hint');
         const unlockWrapper = document.getElementById('unlock-wrapper');
 
-        let isDragging = false;
-        let startX, startY, currentX, currentY;
+        let isOpen = false;
 
-        // Touch events for iPad
-        draggable.addEventListener('touchstart', startDrag);
-        draggable.addEventListener('touchmove', drag);
-        draggable.addEventListener('touchend', endDrag);
-
-        // Mouse events for fallback
-        draggable.addEventListener('mousedown', startDrag);
-        window.addEventListener('mousemove', drag);
-        window.addEventListener('mouseup', endDrag);
-
-        function startDrag(e) {
-            isDragging = true;
-            const touch = e.touches ? e.touches[0] : e;
-            const rect = puzzleArea.getBoundingClientRect();
-            startX = touch.clientX - rect.left - 25;
-            startY = touch.clientY - rect.top - 25;
-            draggable.style.cursor = 'grabbing';
-            e.preventDefault();
-        }
-
-        function drag(e) {
-            if (!isDragging) return;
-            const touch = e.touches ? e.touches[0] : e;
-            const rect = puzzleArea.getBoundingClientRect();
-            currentX = touch.clientX - rect.left - 25;
-            currentY = touch.clientY - rect.top - 25;
-            
-            currentX = Math.max(0, Math.min(currentX, 300 - 50));
-            currentY = Math.max(0, Math.min(currentY, 300 - 50));
-
-            draggable.style.left = currentX + 'px';
-            draggable.style.top = currentY + 'px';
-            e.preventDefault();
-        }
-
-        function endDrag() {
-            if (!isDragging) return;
-            isDragging = false;
-            draggable.style.cursor = 'grab';
-
-            const targetCenterX = 120;
-            const targetCenterY = 120;
-            const dotCenterX = currentX + 25;
-            const dotCenterY = currentY + 25;
-            const distance = Math.sqrt(
-                Math.pow(dotCenterX - targetCenterX, 2) + 
-                Math.pow(dotCenterY - targetCenterY, 2)
-            );
-
-            if (distance < 40) {
-                instruction.textContent = '✨ Stage unlocked!';
-                unlockWrapper.classList.add('reveal');
-                draggable.style.pointerEvents = 'none';
-            } else {
-                instruction.textContent = 'Not quite. Drag the dot onto the golden ring.';
+        lamp.addEventListener('click', () => {
+            if (!isOpen) {
+                lamp.classList.add('lit');
+                hint.classList.add('dim');
+                isOpen = true;
+                
                 setTimeout(() => {
-                    draggable.style.left = '20px';
-                    draggable.style.top = '20px';
-                    currentX = 20;
-                    currentY = 20;
-                }, 300);
+                    unlockWrapper.classList.add('reveal');
+                }, 400);
             }
-        }
+        });
     </script>
+
 </body>
 </html>
