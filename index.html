@@ -33,50 +33,55 @@
             margin-bottom: 30px;
         }
 
-        .card-row {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .card {
-            width: 80px;
-            height: 80px;
-            background: #1a1a1a;
+        /* The Drag Puzzle */
+        .puzzle-area {
+            margin: 30px auto;
+            width: 300px;
+            height: 300px;
             border: 2px solid #333;
-            border-radius: 12px;
+            border-radius: 20px;
+            position: relative;
+            background: #111;
+            touch-action: none;
+        }
+        .target {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid #d49b6e;
+            border-radius: 50%;
+            top: 120px;
+            left: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            color: #555;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            user-select: none;
-        }
-        .card:hover {
-            border-color: #555;
-            transform: scale(1.05);
-        }
-        .card.flipped {
-            border-color: #d49b6e;
             color: #d49b6e;
-            box-shadow: 0 0 20px rgba(212, 155, 110, 0.2);
-            cursor: default;
+            font-size: 0.8rem;
+            font-weight: bold;
+            pointer-events: none;
         }
-        .card.flipped.correct {
-            border-color: #2e7d32;
-            color: #a5d6a7;
-            box-shadow: 0 0 20px rgba(46, 125, 50, 0.3);
+        .draggable {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #d49b6e;
+            border-radius: 50%;
+            top: 20px;
+            left: 20px;
+            cursor: grab;
+            box-shadow: 0 0 30px rgba(212, 155, 110, 0.2);
+            touch-action: none;
+            transition: none;
+            z-index: 10;
         }
-        .card.flipped.wrong {
-            border-color: #b71c1c;
-            color: #ef9a9a;
-            box-shadow: 0 0 20px rgba(183, 28, 28, 0.3);
+        .draggable:active {
+            cursor: grabbing;
         }
-        .card.flipped.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .instruction {
+            color: #888;
+            font-size: 0.9rem;
+            margin: 15px 0;
+            min-height: 24px;
         }
 
         #unlock-wrapper {
@@ -108,15 +113,6 @@
             transform: scale(1.02);
             box-shadow: 0 0 40px rgba(212, 155, 110, 0.5);
         }
-
-        .hint {
-            color: #555;
-            font-size: 0.9rem;
-            font-family: serif;
-            margin-top: 10px;
-            min-height: 30px;
-        }
-        .hint.success { color: #a5d6a7; }
         .footer {
             margin-top: 50px;
             font-size: 0.75rem;
@@ -129,90 +125,97 @@
     <div class="container">
         <h1>Open Stage</h1>
         <p class="sub">The Conservatory of Actors</p>
-        <div class="hint" id="hint">🔍 find the odd symbol</div>
-        <div class="card-row" id="cardRow">
-            <div class="card">?</div>
-            <div class="card">?</div>
-            <div class="card">?</div>
+
+        <div class="instruction" id="instruction">👆 Drag the dot onto the golden ring</div>
+
+        <div class="puzzle-area" id="puzzleArea">
+            <div class="target">✦</div>
+            <div class="draggable" id="draggableDot"></div>
         </div>
+
         <div id="unlock-wrapper">
             <a href="https://theconservatoryofactors.univer.se/" id="unlock-btn">Enter the Stage</a>
         </div>
+
         <div class="footer">✦ built for the craft ✦</div>
     </div>
+
     <script>
-        const cards = document.querySelectorAll('.card');
-        const hint = document.getElementById('hint');
+        const draggable = document.getElementById('draggableDot');
+        const puzzleArea = document.getElementById('puzzleArea');
+        const instruction = document.getElementById('instruction');
         const unlockWrapper = document.getElementById('unlock-wrapper');
 
-        const allSymbols = ['✦', '✧', '⬡', '◆', '☆'];
-        let round = 0;
-        let isLocked = false;
+        let isDragging = false;
+        let startX, startY, currentX, currentY;
 
-        function startRound() {
-            // Pick one symbol to be the "odd one"
-            const oddSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
-            // Pick a different symbol for the pair
-            let pairSymbol;
-            do {
-                pairSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
-            } while (pairSymbol === oddSymbol);
+        // Touch events for iPad
+        draggable.addEventListener('touchstart', startDrag);
+        draggable.addEventListener('touchmove', drag);
+        draggable.addEventListener('touchend', endDrag);
 
-            // Assign symbols to cards (2 identical, 1 odd)
-            const roundSymbols = [pairSymbol, pairSymbol, oddSymbol];
-            // Shuffle them
-            for (let i = roundSymbols.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [roundSymbols[i], roundSymbols[j]] = [roundSymbols[j], roundSymbols[i]];
-            }
+        // Mouse events for fallback (if someone uses a mouse)
+        draggable.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', endDrag);
 
-            cards.forEach((card, i) => {
-                card.classList.remove('flipped', 'correct', 'wrong', 'disabled');
-                card.textContent = '?';
-                card.dataset.symbol = roundSymbols[i];
-                card.dataset.isOdd = (roundSymbols[i] === oddSymbol) ? 'true' : 'false';
-            });
-
-            hint.textContent = `🔍 round ${round + 1} / 3 — tap the odd one`;
-            isLocked = false;
+        function startDrag(e) {
+            isDragging = true;
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = puzzleArea.getBoundingClientRect();
+            startX = touch.clientX - rect.left - 25;
+            startY = touch.clientY - rect.top - 25;
+            draggable.style.cursor = 'grabbing';
+            e.preventDefault();
         }
 
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                if (isLocked) return;
-                if (card.classList.contains('flipped')) return;
+        function drag(e) {
+            if (!isDragging) return;
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = puzzleArea.getBoundingClientRect();
+            currentX = touch.clientX - rect.left - 25;
+            currentY = touch.clientY - rect.top - 25;
+            
+            // Keep dot inside the box
+            currentX = Math.max(0, Math.min(currentX, 300 - 50));
+            currentY = Math.max(0, Math.min(currentY, 300 - 50));
 
-                card.classList.add('flipped');
-                card.textContent = card.dataset.symbol;
+            draggable.style.left = currentX + 'px';
+            draggable.style.top = currentY + 'px';
+            e.preventDefault();
+        }
 
-                if (card.dataset.isOdd === 'true') {
-                    card.classList.add('correct');
-                    round++;
-                    hint.textContent = `✅ ${round} / 3 correct`;
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            draggable.style.cursor = 'grab';
 
-                    if (round === 3) {
-                        isLocked = true;
-                        hint.textContent = '✨ Stage unlocked!';
-                        hint.className = 'hint success';
-                        setTimeout(() => {
-                            unlockWrapper.classList.add('reveal');
-                        }, 500);
-                    } else {
-                        setTimeout(startRound, 800);
-                    }
-                } else {
-                    card.classList.add('wrong');
-                    isLocked = true;
-                    hint.textContent = '❌ Wrong! Try again.';
-                    setTimeout(() => {
-                        round = 0;
-                        startRound();
-                    }, 900);
-                }
-            });
-        });
+            // Check if dot is over the target (centered at 120, 120)
+            const targetCenterX = 120;
+            const targetCenterY = 120;
+            const dotCenterX = currentX + 25;
+            const dotCenterY = currentY + 25;
+            const distance = Math.sqrt(
+                Math.pow(dotCenterX - targetCenterX, 2) + 
+                Math.pow(dotCenterY - targetCenterY, 2)
+            );
 
-        startRound();
+            if (distance < 40) {
+                // Unlock!
+                instruction.textContent = '✨ Stage unlocked!';
+                unlockWrapper.classList.add('reveal');
+                draggable.style.pointerEvents = 'none';
+            } else {
+                instruction.textContent = 'Not quite. Drag the dot onto the golden ring.';
+                // Reset dot to start position
+                setTimeout(() => {
+                    draggable.style.left = '20px';
+                    draggable.style.top = '20px';
+                    currentX = 20;
+                    currentY = 20;
+                }, 300);
+            }
+        }
     </script>
 </body>
 </html>
