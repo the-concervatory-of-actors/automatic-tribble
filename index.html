@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Stage</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d0d;
+            color: white;
+            font-family: -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #d49b6e;
+            font-size: 3rem;
+            font-family: serif;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .sub {
+            color: #888;
+            font-size: 1.1rem;
+            font-family: serif;
+            margin-bottom: 40px;
+        }
+        /* The interactive clickable stage light */
+        .light-btn {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px auto;
+            background: #222;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(212, 155, 110, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid #333;
+            user-select: none;
+        }
+        .light-btn:hover {
+            transform: scale(1.05);
+            border-color: #d49b6e;
+        }
+        .light-btn.active {
+            background: #d49b6e;
+            box-shadow: 0 0 80px rgba(212, 155, 110, 0.6);
+            color: #0d0d0d;
+            border-color: #d49b6e;
+        }
+        /* The hidden door */
+        #enter-btn {
+            display: none;
+            padding: 18px 48px;
+            background: transparent;
+            color: #d49b6e;
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: serif;
+            text-decoration: none;
+            border: 2px solid #d49b6e;
+            border-radius: 60px;
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        #enter-btn.visible {
+            display: inline-block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #enter-btn:hover {
+            background: #d49b6e;
+            color: #0d0d0d;
+            box-shadow: 0 0 40px rgba(212, 155, 110, 0.3);
+        }
+        .instruction {
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            font-family: serif;
+            transition: opacity 0.5s ease;
+        }
+        .instruction.dim {
+            opacity: 0.3;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.8rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Open Stage</h1>
+        <p class="sub">The Conservatory of Actors</p>
+
+        <div class="instruction">☞ tap the light to open the door</div>
+
+        <!-- The interactive stage light -->
+        <div class="light-btn" id="lightBtn">✦</div>
+
+        <a href="https://theconservatoryofactors.univer.se/" id="enter-btn">Enter the Stage</a>
+
+        <div class="footer">✦ built for the craft ✦</div>
+    </div>
+
+    <script>
+        const light = document.getElementById('lightBtn');
+        const door = document.getElementById('enter-btn');
+        const instruction = document.querySelector('.instruction');
+
+        let isOpen = false;
+
+        light.addEventListener('click', () => {
+            if (!isOpen) {
+                // Light up
+                light.classList.add('active');
+                light.textContent = '✦';
+                // Dim instruction
+                instruction.classList.add('dim');
+                // Reveal the door with a delay
+                setTimeout(() => {
+                    door.classList.add('visible');
+                }, 300);
+                isOpen = true;
+            }
+        });
+    </script>
+
+</body>
+</html>
