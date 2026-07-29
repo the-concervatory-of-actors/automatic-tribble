@@ -1,0 +1,6 @@
+name = "automatic-tribble"
+compatibility_date = "2026-07-29"
+# If you're deploying a static site (Workers Site / Pages), point the bucket to the folder with your static assets.
+
+[site]
+  bucket = "./static"
