@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Stage — The Conservatory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: white;
+            font-family: -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #d49b6e;
+            font-size: 3rem;
+            font-family: serif;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+        }
+        .sub {
+            color: #888;
+            font-size: 1rem;
+            font-family: serif;
+            margin-bottom: 30px;
+        }
+
+        /* --- Puzzle Cards --- */
+        .card-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .card {
+            width: 80px;
+            height: 80px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .card:hover {
+            border-color: #555;
+            transform: scale(1.05);
+        }
+        .card.flipped {
+            background: #2a2a2a;
+            border-color: #d49b6e;
+            color: #d49b6e;
+            box-shadow: 0 0 20px rgba(212, 155, 110, 0.1);
+            cursor: default;
+        }
+        .card.flipped.correct {
+            border-color: #2e7d32;
+            color: #a5d6a7;
+            box-shadow: 0 0 20px rgba(46, 125, 50, 0.3);
+        }
+        .card.flipped.wrong {
+            border-color: #b71c1c;
+            color: #ef9a9a;
+            box-shadow: 0 0 20px rgba(183, 28, 28, 0.3);
+        }
+        .card.flipped.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- Unlock Button --- */
+        #unlock-wrapper {
+            margin-top: 25px;
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        #unlock-wrapper.reveal {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #unlock-btn {
+            display: inline-block;
+            padding: 16px 48px;
+            background: transparent;
+            color: #d49b6e;
+            font-size: 1.4rem;
+            font-weight: bold;
+            font-family: serif;
+            text-decoration: none;
+            border: 2px solid #d49b6e;
+            border-radius: 60px;
+            transition: all 0.4s ease;
+            letter-spacing: 2px;
+        }
+        #unlock-btn:hover {
+            background: #d49b6e;
+            color: #0d0d0d;
+            box-shadow: 0 0 40px rgba(212, 155, 110, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* --- Footer --- */
+        .hint {
+            color: #555;
+            font-size: 0.9rem;
+            font-family: serif;
+            margin-top: 10px;
+            min-height: 30px;
+        }
+        .hint.success {
+            color: #a5d6a7;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.75rem;
+            color: #2a2a2a;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Open Stage</h1>
+        <p class="sub">The Conservatory of Actors</p>
+
+        <div class="hint" id="hint">🔒 flip the cards in the correct order</div>
+
+        <div class="card-row" id="cardRow">
+            <div class="card" data-order="1">?</div>
+            <div class="card" data-order="2">?</div>
+            <div class="card" data-order="3">?</div>
+        </div>
+
+        <div id="unlock-wrapper">
+            <a href="https://theconservatoryofactors.univer.se/" id="unlock-btn">Enter the Stage</a>
+        </div>
+
+        <div class="footer">✦ built for the craft ✦</div>
+    </div>
+
+    <script>
+        const cards = document.querySelectorAll('.card');
+        const hint = document.getElementById('hint');
+        const unlockWrapper = document.getElementById('unlock-wrapper');
+
+        // The secret order: 2 → 1 → 3
+        const correctOrder = [2, 1, 3];
+        let currentStep = 0;
+        let isLocked = false;
+
+        // Assign random symbols for each card
+        const symbols = ['✦', '✧', '⬡', '◆', '☆', '♢'];
+        const shuffledSymbols = [...symbols].sort(() => Math.random() - 0.5);
+        cards.forEach((card, i) => {
+            card.textContent = '?';
+            card.dataset.symbol = shuffledSymbols[i % shuffledSymbols.length];
+        });
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                if (isLocked) return;
+                if (card.classList.contains('flipped')) return;
+
+                const order = parseInt(card.dataset.order);
+
+                // Flip the card
+                card.classList.add('flipped');
+                card.textContent = card.dataset.symbol;
+
+                // Check if it's the correct next step
+                if (order === correctOrder[currentStep]) {
+                    card.classList.add('correct');
+                    currentStep++;
+                    hint.textContent = `✅ ${currentStep} / 3 correct`;
+
+                    if (currentStep === 3) {
+                        // Puzzle solved!
+                        isLocked = true;
+                        hint.textContent = '✨ Stage unlocked!';
+                        hint.className = 'hint success';
+                        setTimeout(() => {
+                            unlockWrapper.classList.add('reveal');
+                        }, 500);
+                    }
+                } else {
+                    // Wrong order — reset everything
+                    card.classList.add('wrong');
+                    isLocked = true;
+                    hint.textContent = '❌ Wrong order! Try again.';
+
+                    setTimeout(() => {
+                        cards.forEach(c => {
+                            c.classList.remove('flipped', 'correct', 'wrong');
+                            c.textContent = '?';
+                        });
+                        currentStep = 0;
+                        isLocked = false;
+                        hint.textContent = '🔒 flip the cards in the correct order';
+                        hint.className = 'hint';
+                    }, 800);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
