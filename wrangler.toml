@@ -1,6 +1,12 @@
+# Wrangler configuration
+# NOTE: This file intentionally does NOT include a [site] section to avoid Wrangler treating this repo as a Workers Site.
+# To publish the static site, set your Cloudflare Pages build command (in the repository Pages settings) to:
+#
+#   npx wrangler pages publish ./static
+#
+# This will publish the ./static directory directly to Cloudflare Pages and avoids needing workers-site/index.js.
+
 name = "automatic-tribble"
 compatibility_date = "2026-07-29"
-# If you're deploying a static site (Workers Site / Pages), point the bucket to the folder with your static assets.
 
-[site]
-  bucket = "./static"
+# No [site] section — Pages should publish ./static directly.
